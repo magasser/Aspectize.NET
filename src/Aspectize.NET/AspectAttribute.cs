@@ -9,6 +9,7 @@ public class AspectAttribute : Attribute
 {
     public AspectAttribute(Type aspectType)
     {
+        
         if (aspectType is null)
         {
             throw new ArgumentNullException(nameof(aspectType));

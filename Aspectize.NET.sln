@@ -6,15 +6,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{77AE2F1D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{A5D15C35-6966-46B9-88B0-02E3356CCCA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Abstractions", "src\Aspectize.NET.Abstractions\Aspectize.NET.Abstractions.csproj", "{D80FF312-8780-47F2-96CD-74B8A2764BAC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET", "src\Aspectize.NET\Aspectize.NET.csproj", "{D80FF312-8780-47F2-96CD-74B8A2764BAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Core.Sample", "samples\Aspectize.NET.Core.Sample\Aspectize.NET.Core.Sample.csproj", "{1BD2655D-E0AD-4CBA-B206-15AC74CAABD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Sample", "samples\Aspectize.NET.Sample\Aspectize.NET.Sample.csproj", "{1BD2655D-E0AD-4CBA-B206-15AC74CAABD7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Extensions.DependencyInjection", "src\Aspectize.NET.Extensions.DependencyInjection\Aspectize.NET.Extensions.DependencyInjection.csproj", "{BF6C573E-C079-4F68-8F7D-3B8D3477E72D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Core", "src\Aspectize.NET.Core\Aspectize.NET.Core.csproj", "{1A0955C9-17D0-4264-A193-D44ADA301D86}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Core.Tests", "tests\Aspectize.NET.Core.Tests\Aspectize.NET.Core.Tests.csproj", "{962A0F95-91E9-4EBB-B850-0CD9298F2A50}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Tests", "tests\Aspectize.NET.Tests\Aspectize.NET.Tests.csproj", "{962A0F95-91E9-4EBB-B850-0CD9298F2A50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Extensions.DependencyInjection.Sample", "samples\Aspectize.NET.Extensions.DependencyInjection.Sample\Aspectize.NET.Extensions.DependencyInjection.Sample.csproj", "{7710F8C9-0A45-4869-93D2-16F28C82CE16}"
 EndProject
@@ -22,7 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Sample.Domain
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{C3BE1F8C-7B2E-400A-A375-FA4FA23F81D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Core.Benchmarks", "benchmarks\Aspectize.NET.Core.Benchmarks\Aspectize.NET.Core.Benchmarks.csproj", "{0839BCD8-90F8-4366-A997-E94C102DAB55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspectize.NET.Benchmarks", "benchmarks\Aspectize.NET.Benchmarks\Aspectize.NET.Benchmarks.csproj", "{0839BCD8-90F8-4366-A997-E94C102DAB55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,10 +40,6 @@ Global
 		{BF6C573E-C079-4F68-8F7D-3B8D3477E72D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF6C573E-C079-4F68-8F7D-3B8D3477E72D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF6C573E-C079-4F68-8F7D-3B8D3477E72D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A0955C9-17D0-4264-A193-D44ADA301D86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A0955C9-17D0-4264-A193-D44ADA301D86}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A0955C9-17D0-4264-A193-D44ADA301D86}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A0955C9-17D0-4264-A193-D44ADA301D86}.Release|Any CPU.Build.0 = Release|Any CPU
 		{962A0F95-91E9-4EBB-B850-0CD9298F2A50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{962A0F95-91E9-4EBB-B850-0CD9298F2A50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{962A0F95-91E9-4EBB-B850-0CD9298F2A50}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -67,7 +61,6 @@ Global
 		{D80FF312-8780-47F2-96CD-74B8A2764BAC} = {7A813DFF-77A4-4BFE-8E1D-5D9872497FFC}
 		{1BD2655D-E0AD-4CBA-B206-15AC74CAABD7} = {A5D15C35-6966-46B9-88B0-02E3356CCCA7}
 		{BF6C573E-C079-4F68-8F7D-3B8D3477E72D} = {7A813DFF-77A4-4BFE-8E1D-5D9872497FFC}
-		{1A0955C9-17D0-4264-A193-D44ADA301D86} = {7A813DFF-77A4-4BFE-8E1D-5D9872497FFC}
 		{962A0F95-91E9-4EBB-B850-0CD9298F2A50} = {77AE2F1D-5D6B-481C-A1DD-2145BC3EE426}
 		{7710F8C9-0A45-4869-93D2-16F28C82CE16} = {A5D15C35-6966-46B9-88B0-02E3356CCCA7}
 		{B569E25B-67B2-4002-9FD2-AC47D67E6567} = {A5D15C35-6966-46B9-88B0-02E3356CCCA7}

@@ -4,7 +4,7 @@ using Castle.DynamicProxy;
 
 using FakeItEasy;
 
-namespace Aspectize.NET.Core.Tests;
+namespace Aspectize.NET.Tests;
 
 public class AspectInterceptorTests
 {

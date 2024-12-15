@@ -6,11 +6,10 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Aspectize.NET.Core\Aspectize.NET.Core.csproj"/>
+        <ProjectReference Include="..\Aspectize.NET\Aspectize.NET.csproj"/>
     </ItemGroup>
 
 </Project>

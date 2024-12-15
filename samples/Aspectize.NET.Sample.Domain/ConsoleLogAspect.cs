@@ -1,6 +1,6 @@
 ﻿namespace Aspectize.NET.Sample.Domain;
 
-public sealed class ConsoleLogAspect : IBeforeAspect, IAfterAspect
+public sealed class ConsoleLogAspect : Aspect, IBeforeAspect, IAfterAspect
 {
     private readonly IConsoleWrapper _console;
 

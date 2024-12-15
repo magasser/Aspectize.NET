@@ -1,9 +1,6 @@
 ﻿using System.Reflection;
 
-using Aspectize.NET.Core.Domain;
-using Aspectize.NET.Core.Extensions;
-
-namespace Aspectize.NET.Core.Tests.Extensions;
+namespace Aspectize.NET.Tests.Extensions;
 
 public class ReflectionExtensionsTests
 {

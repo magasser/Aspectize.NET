@@ -8,10 +8,14 @@
 
         <IsPackable>true</IsPackable>
 
-        <PackageId>Aspectize.NET.Abstractions</PackageId>
-        <AssemblyName>Aspectize.NET.Abstractions</AssemblyName>
+        <PackageId>Aspectize.NET</PackageId>
         <RootNamespace>Aspectize.NET</RootNamespace>
     </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+        <InternalsVisibleTo Include="$(AssemblyName).Extensions.DependencyInjection"/>
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Castle.Core" Version="5.1.1"/>

@@ -2,7 +2,16 @@
 
 namespace Aspectize.NET;
 
-public interface IAspect { }
+public interface IAspect
+{
+    bool IsActive { get; }
+}
+
+public abstract class Aspect : IAspect
+{
+    /// <inheritdoc />
+    public virtual bool IsActive => true;
+}
 
 public interface IBeforeAspect : IAspect
 {

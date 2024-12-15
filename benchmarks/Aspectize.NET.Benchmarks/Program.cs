@@ -1,4 +1,4 @@
-﻿using Aspectize.NET.Core.Benchmarks;
+﻿using Aspectize.NET.Benchmarks;
 
 using BenchmarkDotNet.Running;
 

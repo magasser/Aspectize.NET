@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Linq;
 
-using Aspectize.NET.Core;
-using Aspectize.NET.Core.Extensions;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aspectize.NET.Extensions.DependencyInjection.Extensions

@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 
-namespace Aspectize.NET.Core.Benchmarks;
+namespace Aspectize.NET.Benchmarks;
 
 public class AspectBenchmarks
 {
@@ -44,7 +44,7 @@ public class AspectBenchmarks
         _aspectized.AsyncRun();
     }
 
-    public class BenchmarkAspect : IBeforeAspect, IAfterAspect
+    public class BenchmarkAspect : Aspect, IBeforeAspect, IAfterAspect
     {
         /// <inheritdoc />
         public void After(IAfterInvocationContext context)
@@ -59,7 +59,7 @@ public class AspectBenchmarks
         }
     }
 
-    public class AsyncBenchmarkAspect : IAsyncBeforeAspect, IAsyncAfterAspect
+    public class AsyncBenchmarkAspect : Aspect, IAsyncBeforeAspect, IAsyncAfterAspect
     {
         /// <inheritdoc />
         public Task AfterAsync(IAfterInvocationContext context)

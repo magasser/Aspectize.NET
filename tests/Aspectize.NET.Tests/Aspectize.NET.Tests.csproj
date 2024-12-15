@@ -24,8 +24,4 @@
         </PackageReference>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\src\Aspectize.NET.Core\Aspectize.NET.Core.csproj"/>
-    </ItemGroup>
-
 </Project>

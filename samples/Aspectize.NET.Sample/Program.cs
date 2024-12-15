@@ -1,5 +1,4 @@
 ﻿using Aspectize.NET;
-using Aspectize.NET.Core;
 using Aspectize.NET.Sample.Domain;
 
 var console = new ConsoleWrapper();
