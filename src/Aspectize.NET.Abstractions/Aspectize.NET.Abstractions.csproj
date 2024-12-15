@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>12</LangVersion>
+        <Nullable>enable</Nullable>
+        <WarningsAsErrors>Nullable</WarningsAsErrors>
+
+        <IsPackable>true</IsPackable>
+
+        <PackageId>Aspectize.NET.Abstractions</PackageId>
+        <AssemblyName>Aspectize.NET.Abstractions</AssemblyName>
+        <RootNamespace>Aspectize.NET</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Castle.Core" Version="5.1.1"/>
+        <PackageReference Include="System.Reflection.DispatchProxy" Version="4.8.0"/>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Aspectize.NET.Abstractions\Aspectize.NET.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\src\Aspectize.NET.Core\Aspectize.NET.Core.csproj"/>
+        <ProjectReference Include="..\Aspectize.NET.Sample.Domain\Aspectize.NET.Sample.Domain.csproj"/>
+    </ItemGroup>
+
+</Project>
