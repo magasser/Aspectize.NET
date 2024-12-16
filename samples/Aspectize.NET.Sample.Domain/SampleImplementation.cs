@@ -1,6 +1,6 @@
 ﻿namespace Aspectize.NET.Sample.Domain;
 
-public class SampleImplementation : ISampleInterface
+public class SampleImplementation : ISampleInterface2
 {
     /// <inheritdoc />
     public void Call()
@@ -28,5 +28,11 @@ public class SampleImplementation : ISampleInterface
         Console.WriteLine("CallWithReturnAsync after delay");
 
         return 42;
+    }
+
+    /// <inheritdoc />
+    public void Method()
+    {
+        Console.WriteLine("Method");
     }
 }

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Aspectize.NET;
 
-public interface IAfterInvocationContext
+public interface IInvocationContext
 {
     object Target { get; }
 
@@ -13,7 +13,9 @@ public interface IAfterInvocationContext
 
     object[] Arguments { get; }
 
-    Type[] GenericArguments { get; }
+    public object ReturnValue { get; }
 
-    object ReturnValue { get; }
+    object GetArgument(int index);
+
+    void SetArgument(int index, object value);
 }

@@ -5,34 +5,34 @@ using Castle.DynamicProxy;
 
 namespace Aspectize.NET;
 
-internal sealed class InvocationContext : IAfterInvocationContext, IBeforeInvocationContext
+internal sealed class InvocationContext : IInvocationContext
 {
+    private readonly IInvocation _invocation;
+
     public InvocationContext(IInvocation invocation)
     {
-        Invocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
+        _invocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
     }
 
-    public object Target => Invocation.InvocationTarget;
+    public object Target => _invocation.InvocationTarget;
 
-    public Type TargetType => Invocation.TargetType;
+    public Type TargetType => _invocation.TargetType;
 
-    public MethodInfo Method => Invocation.MethodInvocationTarget;
+    public MethodInfo Method => _invocation.Method;
 
-    public object[] Arguments => Invocation.Arguments;
+    public object[] Arguments => _invocation.Arguments;
 
-    public Type[] GenericArguments => Invocation.GenericArguments;
+    public Type[] GenericArguments => _invocation.GenericArguments;
 
-    public object ReturnValue => Invocation.ReturnValue;
-
-    internal IInvocation Invocation { get; }
+    public object ReturnValue => _invocation.ReturnValue;
 
     public object GetArgument(int index)
     {
-        return Invocation.GetArgumentValue(index);
+        return _invocation.GetArgumentValue(index);
     }
 
     public void SetArgument(int index, object value)
     {
-        Invocation.SetArgumentValue(index, value);
+        _invocation.SetArgumentValue(index, value);
     }
 }

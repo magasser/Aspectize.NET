@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 
+using Castle.DynamicProxy;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aspectize.NET.Extensions.DependencyInjection.Extensions
@@ -15,48 +17,48 @@ namespace Aspectize.NET.Extensions.DependencyInjection.Extensions
             }
 
             // TODO: Find a better way to resolve the original target
+
+            // TODO (MaGas): Need to find a better way to resolve the original target
             var originalProvider = services.BuildServiceProvider();
 
             var pairs = services.Where(descriptor => descriptor.ServiceType.IsInterface)
                                 .Select(
                                     descriptor => (Descriptor: descriptor,
                                                    AspectAttributes: descriptor.ServiceType.GetAspectAttributes()))
-                                .Where(pair => pair.AspectAttributes.Any())
+                                .Where(pair => pair.AspectAttributes.Count != 0)
                                 .ToList();
 
-            foreach (var descriptor in pairs.SelectMany(
-                         pair => pair.AspectAttributes.Select(
-                             attribute => ServiceDescriptor.Singleton(typeof(IAspect), attribute.AspectType))))
+            var aspectServiceDescriptors =
+                pairs.SelectMany(pair => pair.AspectAttributes)
+                     .Distinct()
+                     .Select(
+                         attribute =>
+                             ServiceDescriptor.Singleton(
+                                 typeof(IAspect),
+                                 attribute.AspectType))
+                     .ToList();
+
+            foreach (var descriptor in aspectServiceDescriptors)
             {
                 services.Add(descriptor);
             }
 
-            services.AddSingleton(
-                        provider =>
-                        {
-                            var aspects = provider.GetServices<IAspect>();
+            services.AddSingleton<IAspectConfiguration>(
+                        provider => new AspectConfiguration(provider.GetServices<IAspect>()))
+                    .AddSingleton<IAspectBinder, AspectBinder>()
+                    .AddSingleton<IProxyGenerator, ProxyGenerator>();
 
-                            var builder = AspectConfigurationBuilder.Create();
-
-                            foreach (var aspect in aspects)
-                            {
-                                builder.Use(aspect);
-                            }
-
-                            return builder.Build();
-                        })
-                    .AddSingleton<IAspectBinder, AspectBinder>();
-
-            foreach (var descriptor in pairs.Select(pair => pair.Descriptor))
+            foreach (var targetDescriptor in pairs.Select(pair => pair.Descriptor))
             {
+                services.Remove(targetDescriptor);
                 services.AddSingleton(
-                    descriptor.ServiceType,
+                    targetDescriptor.ServiceType,
                     provider =>
                     {
                         var binder = provider.GetRequiredService<IAspectBinder>();
-                        var target = originalProvider.GetRequiredService(descriptor.ServiceType);
+                        var target = originalProvider.GetRequiredService(targetDescriptor.ServiceType);
 
-                        return binder.Bind(target, descriptor.ServiceType);
+                        return binder.Bind(target, targetDescriptor.ServiceType);
                     });
             }
         }

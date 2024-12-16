@@ -1,6 +1,8 @@
 ﻿using Aspectize.NET;
 using Aspectize.NET.Sample.Domain;
 
+using Castle.DynamicProxy;
+
 var console = new ConsoleWrapper();
 
 var configuration = AspectConfigurationBuilder.Create()
@@ -8,10 +10,11 @@ var configuration = AspectConfigurationBuilder.Create()
                                               .Use(new AsyncConsoleLogAspect(console))
                                               .Build();
 
-var aspectBinder = new AspectBinder(configuration);
+var aspectBinder = new AspectBinder(configuration, new ProxyGenerator());
 
-var sampleWithAspect = aspectBinder.Bind<ISampleInterface>(new SampleImplementation());
+var sampleWithAspect = aspectBinder.Bind<ISampleInterface2>(new SampleImplementation());
 
+sampleWithAspect.Method();
 sampleWithAspect.Call();
 await sampleWithAspect.CallAsync();
 await sampleWithAspect.CallWithReturnAsync();

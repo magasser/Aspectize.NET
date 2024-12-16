@@ -1,6 +1,6 @@
 ﻿namespace Aspectize.NET.Sample.Domain;
 
-public sealed class AsyncConsoleLogAspect : Aspect, IAsyncBeforeAspect, IAsyncAfterAspect
+public sealed class AsyncConsoleLogAspect : Aspect
 {
     private readonly IConsoleWrapper _console;
 
@@ -10,7 +10,7 @@ public sealed class AsyncConsoleLogAspect : Aspect, IAsyncBeforeAspect, IAsyncAf
     }
 
     /// <inheritdoc />
-    public Task AfterAsync(IAfterInvocationContext context)
+    public override Task BeforeAsync(IInvocationContext context)
     {
         _console.Log($"{nameof(AsyncConsoleLogAspect)} => {context.TargetType.Name}.{context.Method.Name}()");
 
@@ -18,7 +18,7 @@ public sealed class AsyncConsoleLogAspect : Aspect, IAsyncBeforeAspect, IAsyncAf
     }
 
     /// <inheritdoc />
-    public Task BeforeAsync(IBeforeInvocationContext context)
+    public override Task AfterAsync(IInvocationContext context)
     {
         _console.Log($"{nameof(AsyncConsoleLogAspect)} => {context.TargetType.Name}.{context.Method.Name}()");
 

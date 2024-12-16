@@ -1,38 +1,46 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 using Aspectize.NET.Extensions;
+
+using Castle.DynamicProxy;
 
 namespace Aspectize.NET;
 
 public sealed class AspectBinder : IAspectBinder
 {
-    private readonly IAspectConfiguration _configuration;
-    private readonly AspectProxyGenerator _proxyGenerator;
+    private readonly IProxyGenerator _proxyGenerator;
+    private readonly IReadOnlyDictionary<Type, IAspect> _aspects;
 
-    public AspectBinder(IAspectConfiguration configuration)
+    public AspectBinder(IAspectConfiguration configuration, IProxyGenerator proxyGenerator)
     {
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-
-        _proxyGenerator = new AspectProxyGenerator();
+        _aspects = configuration?.Aspects.ToDictionary(aspect => aspect.GetType(), aspect => aspect)
+                ?? throw new ArgumentNullException(nameof(configuration));
+        _proxyGenerator = proxyGenerator ?? throw new ArgumentNullException(nameof(proxyGenerator));
     }
 
     /// <inheritdoc />
-    public object Bind(object target, Type targetType)
+    public object Bind(object target, Type targetInterface)
     {
         if (target is null)
         {
             throw new ArgumentNullException(nameof(target));
         }
 
-        if (targetType is null)
+        if (targetInterface is null)
         {
-            throw new ArgumentNullException(nameof(targetType));
+            throw new ArgumentNullException(nameof(targetInterface));
         }
 
-        var aspects = GetAspects(targetType);
+        if (!targetInterface.IsInterface)
+        {
+            throw new ArgumentException("The target interface must be an interface type.", nameof(targetInterface));
+        }
 
-        return aspects.Length is 0 ? target : _proxyGenerator.CreateProxy(targetType, target, aspects);
+        return BindCore(target, targetInterface);
     }
 
     /// <inheritdoc />
@@ -43,15 +51,62 @@ public sealed class AspectBinder : IAspectBinder
             throw new ArgumentNullException(nameof(target));
         }
 
-        return (Bind(target, typeof(T)) as T)!;
+        var targetInterface = typeof(T);
+
+        if (!targetInterface.IsInterface)
+        {
+            throw new ArgumentException($"The generic type '{nameof(T)}' must be an interface type.", nameof(target));
+        }
+        
+        return (BindCore(target, targetInterface) as T)!;
     }
 
-    private IAspect[] GetAspects(Type targetType)
+    public object BindCore(object target, Type targetInterface)
     {
-        return targetType.GetMethods()
-                         .SelectMany(method => method.GetAspectAttributes())
-                         .Distinct()
-                         .Select(attribute => _configuration.GetAspect(attribute.AspectType))
-                         .ToArray();
+        var targetType = target.GetType();
+        
+        var interfaces = targetType.GetInterfaces();
+
+        if (!interfaces.Any(i => i == targetInterface))
+        {
+            throw new ArgumentException("The target must implement the target interface.", nameof(target));
+        }
+        
+        var additionalInterfaces = interfaces.Except(targetInterface.GetInterfaces()).ToArray();
+
+        var attributes = targetType.GetAspectAttributes();
+
+        if (attributes.Count is 0)
+        {
+            return target;
+        }
+
+        var interceptor = CreateAspectInterceptor(targetType, attributes);
+
+        var options = new ProxyGenerationOptions { Hook = new AspectProxyGenerationHook() };
+
+        return _proxyGenerator.CreateInterfaceProxyWithTarget(
+            interfaceToProxy: targetInterface,
+            additionalInterfacesToProxy: additionalInterfaces,
+            target,
+            options,
+            interceptor);
+    }
+
+    private IInterceptor CreateAspectInterceptor(Type targetType, IReadOnlyList<AspectAttribute> attributes)
+    {
+        var aspects = new List<IAspect>();
+
+        foreach (var attribute in attributes)
+        {
+            if (!_aspects.TryGetValue(attribute.AspectType, out var aspect))
+            {
+                Debug.Fail($"Failed to find aspect for type '{attribute.AspectType.FullName}'.");
+            }
+
+            aspects.Add(aspect);
+        }
+
+        return new AspectInterceptor(targetType, aspects);
     }
 }

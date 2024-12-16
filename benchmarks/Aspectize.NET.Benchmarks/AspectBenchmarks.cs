@@ -1,11 +1,16 @@
 ﻿using BenchmarkDotNet.Attributes;
 
+using Castle.DynamicProxy;
+
 namespace Aspectize.NET.Benchmarks;
 
+[ShortRunJob]
 public class AspectBenchmarks
 {
-    private readonly IBenchmarkAspectInterface _original;
-    private readonly IBenchmarkAspectInterface _aspectized;
+    private readonly IBenchmarkSingleAspect _originalSingle;
+    private readonly IBenchmarkDoubleAspect _originalDouble;
+    private readonly IBenchmarkSingleAspect _aspectizedSingle;
+    private readonly IBenchmarkDoubleAspect _aspectizedDouble;
 
     public AspectBenchmarks()
     {
@@ -14,76 +19,123 @@ public class AspectBenchmarks
                                                       .Use(new AsyncBenchmarkAspect())
                                                       .Build();
 
-        var binder = new AspectBinder(configuration);
+        var binder = new AspectBinder(configuration, new ProxyGenerator());
 
-        _original = new BenchmarkAspectImpl();
-        _aspectized = binder.Bind<IBenchmarkAspectInterface>(_original);
+        _originalSingle = new BenchmarkSingleAspectImpl();
+        _originalDouble = new BenchmarkDoubleAspectImpl();
+        _aspectizedSingle = binder.Bind<IBenchmarkSingleAspect>(_originalSingle);
+        _aspectizedDouble = binder.Bind<IBenchmarkDoubleAspect>(_originalDouble);
     }
 
     [Benchmark]
-    public void OriginalRun()
+    public void OriginalRunSingle()
     {
-        _original.Run();
+        _originalSingle.Run();
     }
 
     [Benchmark]
-    public void AspectizedRun()
+    public void AspectizedRunSingle()
     {
-        _aspectized.Run();
+        _aspectizedSingle.Run();
     }
 
     [Benchmark]
-    public void OriginalAsyncRun()
+    public void OriginalAsyncRunSingle()
     {
-        _original.AsyncRun();
+        _originalSingle.AsyncRun();
     }
 
     [Benchmark]
-    public void AspectizedAsyncRun()
+    public void AspectizedAsyncRunSingle()
     {
-        _aspectized.AsyncRun();
+        _aspectizedSingle.AsyncRun();
     }
 
-    public class BenchmarkAspect : Aspect, IBeforeAspect, IAfterAspect
+    [Benchmark]
+    public void OriginalRunDouble()
+    {
+        _originalDouble.Run();
+    }
+
+    [Benchmark]
+    public void AspectizedRunDouble()
+    {
+        _aspectizedDouble.Run();
+    }
+
+    [Benchmark]
+    public void OriginalAsyncRunDouble()
+    {
+        _originalDouble.AsyncRun();
+    }
+
+    [Benchmark]
+    public void AspectizedAsyncRunDouble()
+    {
+        _aspectizedDouble.AsyncRun();
+    }
+
+    public class BenchmarkAspect : Aspect
     {
         /// <inheritdoc />
-        public void After(IAfterInvocationContext context)
+        public override void Before(IInvocationContext context)
         {
             // Do nothing
         }
-
+        
         /// <inheritdoc />
-        public void Before(IBeforeInvocationContext context)
+        public override void After(IInvocationContext context)
         {
             // Do nothing
         }
     }
 
-    public class AsyncBenchmarkAspect : Aspect, IAsyncBeforeAspect, IAsyncAfterAspect
+    public class AsyncBenchmarkAspect : Aspect
     {
         /// <inheritdoc />
-        public Task AfterAsync(IAfterInvocationContext context)
+        public override Task BeforeAsync(IInvocationContext context)
         {
             return Task.CompletedTask;
         }
-
+        
         /// <inheritdoc />
-        public Task BeforeAsync(IBeforeInvocationContext context)
+        public override Task AfterAsync(IInvocationContext context)
         {
             return Task.CompletedTask;
         }
     }
 
-    public interface IBenchmarkAspectInterface
+    public interface IBenchmarkSingleAspect
     {
         [Aspect<BenchmarkAspect>]
         void Run();
 
+        void AsyncRun();
+    }
+
+    public class BenchmarkSingleAspectImpl : IBenchmarkSingleAspect
+    {
+        public void Run()
+        {
+            // Do nothing
+        }
+
+        public void AsyncRun()
+        {
+            // Do nothing
+        }
+    }
+
+    public interface IBenchmarkDoubleAspect
+    {
+        [Aspect<BenchmarkAspect>]
+        void Run();
+        
         [Aspect<AsyncBenchmarkAspect>]
         void AsyncRun();
     }
 
-    public class BenchmarkAspectImpl : IBenchmarkAspectInterface
+    public class BenchmarkDoubleAspectImpl : IBenchmarkDoubleAspect
     {
         public void Run()
         {

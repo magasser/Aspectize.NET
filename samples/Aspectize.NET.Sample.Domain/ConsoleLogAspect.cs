@@ -1,6 +1,6 @@
 ﻿namespace Aspectize.NET.Sample.Domain;
 
-public sealed class ConsoleLogAspect : Aspect, IBeforeAspect, IAfterAspect
+public sealed class ConsoleLogAspect : Aspect
 {
     private readonly IConsoleWrapper _console;
 
@@ -10,13 +10,13 @@ public sealed class ConsoleLogAspect : Aspect, IBeforeAspect, IAfterAspect
     }
 
     /// <inheritdoc />
-    public void After(IAfterInvocationContext context)
+    public override void Before(IInvocationContext context)
     {
         _console.Log($"{nameof(ConsoleLogAspect)} => {context.TargetType.Name}.{context.Method.Name}()");
     }
 
     /// <inheritdoc />
-    public void Before(IBeforeInvocationContext context)
+    public override void After(IInvocationContext context)
     {
         _console.Log($"{nameof(ConsoleLogAspect)} => {context.TargetType.Name}.{context.Method.Name}()");
     }

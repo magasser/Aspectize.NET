@@ -1,82 +1,67 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-
-using Aspectize.NET.Domain;
 
 namespace Aspectize.NET.Extensions;
 
 internal static class ReflectionExtensions
 {
-    public static DelegateType GetDelegateType(this MethodInfo method)
+    public static IReadOnlyList<AspectAttribute> GetAspectAttributes(this Type type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        return getAspectAttributes(type)
+               .Concat(type.GetInterfaces().SelectMany(getAspectAttributes))
+               .Distinct()
+               .ToList();
+
+        IEnumerable<AspectAttribute> getAspectAttributes(Type t)
+        {
+            return t.GetCustomAttributes<AspectAttribute>(inherit: false)
+                    .Concat(
+                        t.GetMethods()
+                            .SelectMany(method => method.GetCustomAttributes<AspectAttribute>(inherit: false)));
+        }
+    }
+
+    public static bool HasAspect(this MethodInfo method, IAspect aspect)
     {
         if (method is null)
         {
             throw new ArgumentNullException(nameof(method));
         }
 
-        return method.ReturnType switch
+        if (aspect is null)
         {
-            var t when t == typeof(void) => DelegateType.Action,
-            var t when !typeof(Task).IsAssignableFrom(t) => DelegateType.Func,
-            { IsGenericType: false } => DelegateType.AsyncAction,
-
-            _ => DelegateType.AsyncFunc
-        };
-    }
-
-    // TODO: Improve these methods to support more than interfaces
-    public static AspectAttribute[] GetAspectAttributes(this Type type)
-    {
-        if (!type.IsInterface)
-        {
-            return [];
+            throw new ArgumentNullException(nameof(aspect));
         }
 
-        var interfaceAttributes =
-            type.GetCustomAttributes(typeof(AspectAttribute), inherit: false)
-                .ToAspectAttributes();
+        var aspectType = aspect.GetType();
 
-        var methodAttributes = type.GetMethods()
-                                   .SelectMany(
-                                       method => method.GetCustomAttributes(
-                                           typeof(AspectAttribute),
-                                           inherit: false))
-                                   .ToAspectAttributes();
+        var baseMethod = method.GetBaseDefinition();
 
-        return interfaceAttributes.Concat(methodAttributes).ToArray();
+        return baseMethod.GetCustomAttributes<AspectAttribute>(inherit: false)
+                         .Any(attribute => attribute.AspectType == aspectType)
+            || (baseMethod.DeclaringType?.GetCustomAttributes<AspectAttribute>(inherit: false)
+                          .Any(attribute => attribute.AspectType == aspectType)
+             ?? false);
     }
 
-    public static AspectAttribute[] GetAspectAttributes(this MethodInfo method)
+    public static bool HasAnyAspect(this MethodInfo method)
     {
         if (method is null)
         {
             throw new ArgumentNullException(nameof(method));
         }
 
-        if (!method.DeclaringType!.IsInterface)
-        {
-            return [];
-        }
+        var baseMethod = method.GetBaseDefinition();
 
-        var interfaceAttributes = method.DeclaringType!
-                                        .GetCustomAttributes(typeof(AspectAttribute), inherit: false)
-                                        .ToAspectAttributes();
-
-        var methodAttributes = method.GetCustomAttributes(
-                                         typeof(AspectAttribute),
-                                         inherit: false)
-                                     .ToAspectAttributes();
-
-        return interfaceAttributes.Concat(methodAttributes)
-                                  .ToArray();
-    }
-
-    private static AspectAttribute[] ToAspectAttributes(this IEnumerable<object> attributes)
-    {
-        return attributes.OfType<AspectAttribute>().ToArray();
+        return baseMethod.GetCustomAttributes<AspectAttribute>(inherit: false).Any()
+            || (baseMethod.DeclaringType?.GetCustomAttributes<AspectAttribute>(inherit: false).Any()
+             ?? false);
     }
 }

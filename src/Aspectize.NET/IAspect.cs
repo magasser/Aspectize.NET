@@ -5,30 +5,36 @@ namespace Aspectize.NET;
 public interface IAspect
 {
     bool IsActive { get; }
+
+    void Before(IInvocationContext context);
+
+    void After(IInvocationContext context);
+
+    Task BeforeAsync(IInvocationContext context);
+
+    Task AfterAsync(IInvocationContext context);
 }
 
 public abstract class Aspect : IAspect
 {
     /// <inheritdoc />
     public virtual bool IsActive => true;
-}
 
-public interface IBeforeAspect : IAspect
-{
-    void Before(IBeforeInvocationContext context);
-}
+    /// <inheritdoc />
+    public virtual void Before(IInvocationContext context) { }
 
-public interface IAfterAspect : IAspect
-{
-    void After(IAfterInvocationContext context);
-}
+    /// <inheritdoc />
+    public virtual void After(IInvocationContext context) { }
 
-public interface IAsyncBeforeAspect : IAspect
-{
-    Task BeforeAsync(IBeforeInvocationContext context);
-}
+    /// <inheritdoc />
+    public virtual Task BeforeAsync(IInvocationContext context)
+    {
+        return Task.CompletedTask;
+    }
 
-public interface IAsyncAfterAspect : IAspect
-{
-    Task AfterAsync(IAfterInvocationContext context);
+    /// <inheritdoc />
+    public virtual Task AfterAsync(IInvocationContext context)
+    {
+        return Task.CompletedTask;
+    }
 }
