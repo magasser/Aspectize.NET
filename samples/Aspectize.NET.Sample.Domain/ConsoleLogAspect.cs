@@ -18,6 +18,7 @@ public sealed class ConsoleLogAspect : Aspect
     /// <inheritdoc />
     public override void After(IInvocationContext context)
     {
-        _console.Log($"{nameof(ConsoleLogAspect)} => {context.TargetType.Name}.{context.Method.Name}()");
+        _console.Log(
+            $"{nameof(ConsoleLogAspect)} => {context.TargetType.Name}.{context.Method.Name}() returned {context.SynchronousReturnValue ?? (context.AsynchronousReturnValue ?? "void")}");
     }
 }

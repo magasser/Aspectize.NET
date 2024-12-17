@@ -24,7 +24,13 @@ internal sealed class InvocationContext : IInvocationContext
 
     public Type[] GenericArguments => _invocation.GenericArguments;
 
-    public object ReturnValue => _invocation.ReturnValue;
+    public object? ReturnValue => _invocation.ReturnValue;
+
+    /// <inheritdoc />
+    public object? SynchronousReturnValue { get; internal set; }
+
+    /// <inheritdoc />
+    public object? AsynchronousReturnValue { get; internal set; }
 
     public object GetArgument(int index)
     {

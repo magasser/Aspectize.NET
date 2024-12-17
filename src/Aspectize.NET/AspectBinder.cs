@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 
 using Aspectize.NET.Extensions;
 
@@ -12,13 +9,12 @@ namespace Aspectize.NET;
 
 public sealed class AspectBinder : IAspectBinder
 {
+    private readonly IAspectProvider _aspectProvider;
     private readonly IProxyGenerator _proxyGenerator;
-    private readonly IReadOnlyDictionary<Type, IAspect> _aspects;
 
-    public AspectBinder(IAspectConfiguration configuration, IProxyGenerator proxyGenerator)
+    public AspectBinder(IAspectProvider aspectProvider, IProxyGenerator proxyGenerator)
     {
-        _aspects = configuration?.Aspects.ToDictionary(aspect => aspect.GetType(), aspect => aspect)
-                ?? throw new ArgumentNullException(nameof(configuration));
+        _aspectProvider = aspectProvider ?? throw new ArgumentNullException(nameof(aspectProvider));
         _proxyGenerator = proxyGenerator ?? throw new ArgumentNullException(nameof(proxyGenerator));
     }
 
@@ -57,21 +53,21 @@ public sealed class AspectBinder : IAspectBinder
         {
             throw new ArgumentException($"The generic type '{nameof(T)}' must be an interface type.", nameof(target));
         }
-        
+
         return (BindCore(target, targetInterface) as T)!;
     }
 
     public object BindCore(object target, Type targetInterface)
     {
         var targetType = target.GetType();
-        
+
         var interfaces = targetType.GetInterfaces();
 
-        if (!interfaces.Any(i => i == targetInterface))
+        if (interfaces.All(i => i != targetInterface))
         {
             throw new ArgumentException("The target must implement the target interface.", nameof(target));
         }
-        
+
         var additionalInterfaces = interfaces.Except(targetInterface.GetInterfaces()).ToArray();
 
         var attributes = targetType.GetAspectAttributes();
@@ -81,7 +77,7 @@ public sealed class AspectBinder : IAspectBinder
             return target;
         }
 
-        var interceptor = CreateAspectInterceptor(targetType, attributes);
+        var interceptor = new AspectInterceptor(targetType, _aspectProvider);
 
         var options = new ProxyGenerationOptions { Hook = new AspectProxyGenerationHook() };
 
@@ -91,22 +87,5 @@ public sealed class AspectBinder : IAspectBinder
             target,
             options,
             interceptor);
-    }
-
-    private IInterceptor CreateAspectInterceptor(Type targetType, IReadOnlyList<AspectAttribute> attributes)
-    {
-        var aspects = new List<IAspect>();
-
-        foreach (var attribute in attributes)
-        {
-            if (!_aspects.TryGetValue(attribute.AspectType, out var aspect))
-            {
-                Debug.Fail($"Failed to find aspect for type '{attribute.AspectType.FullName}'.");
-            }
-
-            aspects.Add(aspect);
-        }
-
-        return new AspectInterceptor(targetType, aspects);
     }
 }

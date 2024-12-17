@@ -13,7 +13,11 @@ public interface IInvocationContext
 
     object[] Arguments { get; }
 
-    public object ReturnValue { get; }
+    public object? ReturnValue { get; }
+
+    public object? SynchronousReturnValue { get; }
+
+    public object? AsynchronousReturnValue { get; }
 
     object GetArgument(int index);
 

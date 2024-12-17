@@ -10,7 +10,11 @@ public class AspectInterceptorTests
 {
     private static AspectInterceptor SetupSubject(Type targetType, IAspect aspect)
     {
-        return new AspectInterceptor(targetType, aspect);
+        var aspectProvider = A.Fake<IAspectProvider>(options => options.Strict());
+
+        A.CallTo(() => aspectProvider.GetAspect(targetType)).Returns(aspect);
+
+        return new AspectInterceptor(targetType, aspectProvider);
     }
 
     private static IInvocation SetupInvocation(MethodInfo method, object returnValue)
@@ -38,57 +42,57 @@ public class AspectInterceptorTests
         public void TestMethod() { }
     }
 
-    public class TestAspect : IBeforeAspect, IAfterAspect
+    public class TestAspect : Aspect
     {
-        private readonly Action<IBeforeInvocationContext> _beforeAction;
-        private readonly Action<IAfterInvocationContext> _afterAction;
+        private readonly Action<IInvocationContext> _beforeAction;
+        private readonly Action<IInvocationContext> _afterAction;
 
-        public TestAspect(Action<IBeforeInvocationContext> beforeAction, Action<IAfterInvocationContext> afterAction)
+        public TestAspect(Action<IInvocationContext> beforeAction, Action<IInvocationContext> afterAction)
         {
             _beforeAction = beforeAction;
             _afterAction = afterAction;
         }
 
         /// <inheritdoc />
-        public void After(IAfterInvocationContext context)
+        public override void After(IInvocationContext context)
         {
             _afterAction.Invoke(context);
         }
 
         /// <inheritdoc />
-        public void Before(IBeforeInvocationContext context)
+        public override void Before(IInvocationContext context)
         {
             _beforeAction.Invoke(context);
         }
     }
 
-    public class TestBeforeAspect : IBeforeAspect
+    public class TestBeforeAspect : Aspect
     {
-        private readonly Action<IBeforeInvocationContext> _beforeAction;
+        private readonly Action<IInvocationContext> _beforeAction;
 
-        public TestBeforeAspect(Action<IBeforeInvocationContext> beforeAction)
+        public TestBeforeAspect(Action<IInvocationContext> beforeAction)
         {
             _beforeAction = beforeAction;
         }
 
         /// <inheritdoc />
-        public void Before(IBeforeInvocationContext context)
+        public override void Before(IInvocationContext context)
         {
             _beforeAction.Invoke(context);
         }
     }
 
-    public class TestAfterAspect : IAfterAspect
+    public class TestAfterAspect : Aspect
     {
-        private readonly Action<IAfterInvocationContext> _afterAction;
+        private readonly Action<IInvocationContext> _afterAction;
 
-        public TestAfterAspect(Action<IAfterInvocationContext> afterAction)
+        public TestAfterAspect(Action<IInvocationContext> afterAction)
         {
             _afterAction = afterAction;
         }
 
         /// <inheritdoc />
-        public void After(IAfterInvocationContext context)
+        public override void After(IInvocationContext context)
         {
             _afterAction.Invoke(context);
         }
@@ -99,7 +103,7 @@ public class AspectInterceptorTests
     {
         // Arrange
         var executed = false;
-        Action<IAfterInvocationContext> afterAction = _ => executed = true;
+        Action<IInvocationContext> afterAction = _ => executed = true;
 
         var invocation = SetupInvocation(
             typeof(ITargetInterface).GetMethod(nameof(ITargetInterface.TestMethod))!,
@@ -120,8 +124,8 @@ public class AspectInterceptorTests
         // Arrange
         var beforeExecuted = false;
         var afterExecuted = false;
-        Action<IBeforeInvocationContext> beforeAction = _ => beforeExecuted = true;
-        Action<IAfterInvocationContext> afterAction = _ => afterExecuted = true;
+        Action<IInvocationContext> beforeAction = _ => beforeExecuted = true;
+        Action<IInvocationContext> afterAction = _ => afterExecuted = true;
 
         var invocation = SetupInvocation(
             typeof(ITargetInterface).GetMethod(nameof(ITargetInterface.TestMethod))!,
@@ -142,7 +146,7 @@ public class AspectInterceptorTests
     {
         // Arrange
         var executed = false;
-        Action<IBeforeInvocationContext> beforeAction = _ => executed = true;
+        Action<IInvocationContext> beforeAction = _ => executed = true;
 
         var invocation = SetupInvocation(
             typeof(ITargetInterface).GetMethod(nameof(ITargetInterface.TestMethod))!,

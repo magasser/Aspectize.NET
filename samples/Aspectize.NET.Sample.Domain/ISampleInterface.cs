@@ -1,9 +1,11 @@
 ﻿namespace Aspectize.NET.Sample.Domain;
 
+[Aspect<ConsoleLogAspect>]
 public interface ISampleInterface
 {
-    [Aspect<ConsoleLogAspect>]
     void Call();
+
+    int CallWithReturn();
 
     Task CallAsync(CancellationToken cancellationToken = default);
 

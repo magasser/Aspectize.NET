@@ -3,36 +3,26 @@
 public class SampleImplementation : ISampleInterface2
 {
     /// <inheritdoc />
-    public void Call()
+    public void Call() { }
+
+    /// <inheritdoc />
+    public int CallWithReturn()
     {
-        Console.WriteLine("Call");
+        return 41;
     }
 
     /// <inheritdoc />
-    public async Task CallAsync(CancellationToken cancellationToken = default)
+    public Task CallAsync(CancellationToken cancellationToken = default)
     {
-        Console.WriteLine("CallAsync before delay");
-
-        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
-
-        Console.WriteLine("CallAsync after delay");
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async Task<int> CallWithReturnAsync(CancellationToken cancellationToken = default)
+    public Task<int> CallWithReturnAsync(CancellationToken cancellationToken = default)
     {
-        Console.WriteLine("CallWithReturnAsync before delay");
-
-        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
-
-        Console.WriteLine("CallWithReturnAsync after delay");
-
-        return 42;
+        return Task.FromResult(42);
     }
 
     /// <inheritdoc />
-    public void Method()
-    {
-        Console.WriteLine("Method");
-    }
+    public void Method() { }
 }

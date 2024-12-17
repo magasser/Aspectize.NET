@@ -43,8 +43,7 @@ namespace Aspectize.NET.Extensions.DependencyInjection.Extensions
                 services.Add(descriptor);
             }
 
-            services.AddSingleton<IAspectConfiguration>(
-                        provider => new AspectConfiguration(provider.GetServices<IAspect>()))
+            services.AddSingleton<IAspectProvider>(provider => new ServiceAspectProvider(provider))
                     .AddSingleton<IAspectBinder, AspectBinder>()
                     .AddSingleton<IProxyGenerator, ProxyGenerator>();
 

@@ -1,6 +1,6 @@
 ﻿namespace Aspectize.NET.Sample.Domain;
 
-public sealed class AsyncConsoleLogAspect : Aspect
+public sealed class AsyncConsoleLogAspect : AsyncAspect
 {
     private readonly IConsoleWrapper _console;
 

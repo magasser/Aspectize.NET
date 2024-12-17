@@ -17,6 +17,7 @@ var sampleWithAspect = provider.GetRequiredService<ISampleInterface2>();
 
 sampleWithAspect.Method();
 sampleWithAspect.Call();
+sampleWithAspect.CallWithReturn();
 await sampleWithAspect.CallAsync();
 await sampleWithAspect.CallWithReturnAsync();
 

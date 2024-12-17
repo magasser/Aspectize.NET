@@ -24,7 +24,7 @@ internal static class ReflectionExtensions
             return t.GetCustomAttributes<AspectAttribute>(inherit: false)
                     .Concat(
                         t.GetMethods()
-                            .SelectMany(method => method.GetCustomAttributes<AspectAttribute>(inherit: false)));
+                         .SelectMany(method => method.GetCustomAttributes<AspectAttribute>(inherit: false)));
         }
     }
 

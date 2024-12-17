@@ -10,12 +10,13 @@ var configuration = AspectConfigurationBuilder.Create()
                                               .Use(new AsyncConsoleLogAspect(console))
                                               .Build();
 
-var aspectBinder = new AspectBinder(configuration, new ProxyGenerator());
+var aspectBinder = new AspectBinder(configuration.Provider, new ProxyGenerator());
 
 var sampleWithAspect = aspectBinder.Bind<ISampleInterface2>(new SampleImplementation());
 
 sampleWithAspect.Method();
 sampleWithAspect.Call();
+sampleWithAspect.CallWithReturn();
 await sampleWithAspect.CallAsync();
 await sampleWithAspect.CallWithReturnAsync();
 

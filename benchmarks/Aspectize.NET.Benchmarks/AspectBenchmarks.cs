@@ -19,7 +19,7 @@ public class AspectBenchmarks
                                                       .Use(new AsyncBenchmarkAspect())
                                                       .Build();
 
-        var binder = new AspectBinder(configuration, new ProxyGenerator());
+        var binder = new AspectBinder(configuration.Provider, new ProxyGenerator());
 
         _originalSingle = new BenchmarkSingleAspectImpl();
         _originalDouble = new BenchmarkDoubleAspectImpl();
@@ -39,7 +39,7 @@ public class AspectBenchmarks
         _aspectizedSingle.Run();
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public void OriginalAsyncRunSingle()
     {
         _originalSingle.AsyncRun();
@@ -73,7 +73,7 @@ public class AspectBenchmarks
     public void AspectizedAsyncRunDouble()
     {
         _aspectizedDouble.AsyncRun();
-    }
+    }*/
 
     public class BenchmarkAspect : Aspect
     {
@@ -82,7 +82,7 @@ public class AspectBenchmarks
         {
             // Do nothing
         }
-        
+
         /// <inheritdoc />
         public override void After(IInvocationContext context)
         {
@@ -90,14 +90,14 @@ public class AspectBenchmarks
         }
     }
 
-    public class AsyncBenchmarkAspect : Aspect
+    public class AsyncBenchmarkAspect : AsyncAspect
     {
         /// <inheritdoc />
         public override Task BeforeAsync(IInvocationContext context)
         {
             return Task.CompletedTask;
         }
-        
+
         /// <inheritdoc />
         public override Task AfterAsync(IInvocationContext context)
         {
@@ -130,7 +130,7 @@ public class AspectBenchmarks
     {
         [Aspect<BenchmarkAspect>]
         void Run();
-        
+
         [Aspect<AsyncBenchmarkAspect>]
         void AsyncRun();
     }

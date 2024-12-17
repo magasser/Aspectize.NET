@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Aspectize.NET.Extensions;
 
 using Castle.DynamicProxy;
 
@@ -17,14 +14,17 @@ internal sealed class AspectInterceptor : IInterceptor
     private readonly IReadOnlyDictionary<MethodInfo, DelegateType> _methodTypes;
     private readonly IReadOnlyDictionary<MethodInfo, IReadOnlyList<IAspect>> _methodAspects;
 
-    public AspectInterceptor(Type targetType, IEnumerable<IAspect> aspects)
+    public AspectInterceptor(Type targetType, IAspectProvider aspectProvider)
     {
         if (targetType is null)
         {
             throw new ArgumentNullException(nameof(targetType));
         }
 
-        var enumeratedAspects = aspects?.ToList() ?? throw new ArgumentNullException(nameof(aspects));
+        if (aspectProvider is null)
+        {
+            throw new ArgumentNullException(nameof(aspectProvider));
+        }
 
         var methods = targetType.GetMethods()
                                 .Concat(targetType.GetInterfaces().SelectMany(i => i.GetMethods()))
@@ -33,7 +33,7 @@ internal sealed class AspectInterceptor : IInterceptor
         _methodTypes = methods.ToDictionary(method => method, GetDelegateType);
         _methodAspects = methods.ToDictionary(
             method => method,
-            method => GetOrderedAspectsForMethod(method, enumeratedAspects));
+            method => GetOrderedAspectsForMethod(method, aspectProvider));
     }
 
     /// <inheritdoc />
@@ -43,8 +43,6 @@ internal sealed class AspectInterceptor : IInterceptor
         {
             throw new ArgumentNullException(nameof(invocation));
         }
-        
-        invocation.Proceed();
 
         var delegateType = _methodTypes[invocation.Method];
 
@@ -85,65 +83,85 @@ internal sealed class AspectInterceptor : IInterceptor
             .ContinueWith(_ => { sourceType.GetMethod("SetResult")!.Invoke(source, [invocation.ReturnValue]); });
     }
 
-    private void InterceptCore(IInvocationContext context, IInvocationProceedInfo proceedInfo)
-    {
-        /*var methodAspects = _methodAspects[context.Method];
-
-        foreach (var aspect in methodAspects)
-        {
-            aspect.Before(context);
-
-            switch (SynchronizationContext.Current)
-            {
-                case null:
-                    aspect.BeforeAsync(context).GetAwaiter().GetResult();
-                    break;
-                default:
-                    Task.Run(() => aspect.BeforeAsync(context)).GetAwaiter().GetResult();
-                    break;
-            }
-        }*/
-
-        proceedInfo.Invoke();
-
-        /*foreach (var aspect in methodAspects)
-        {
-            aspect.After(context);
-
-            switch (SynchronizationContext.Current)
-            {
-                case null:
-                    aspect.AfterAsync(context).GetAwaiter().GetResult();
-                    break;
-                default:
-                    Task.Run(() => aspect.AfterAsync(context)).GetAwaiter().GetResult();
-                    break;
-            }
-        }*/
-    }
-
-    private async Task InterceptCoreAsync(IInvocationContext context, IInvocationProceedInfo proceedInfo)
+    private void InterceptCore(InvocationContext context, IInvocationProceedInfo proceedInfo)
     {
         var methodAspects = _methodAspects[context.Method];
 
         foreach (var aspect in methodAspects)
         {
-            // ReSharper disable once MethodHasAsyncOverload
-            aspect.Before(context);
-
-            await aspect.BeforeAsync(context).ConfigureAwait(false);
+            switch (aspect)
+            {
+                case Aspect syncAspect:
+                    syncAspect.Before(context);
+                    break;
+                case AsyncAspect asyncAspect when SynchronizationContext.Current is null:
+                    asyncAspect.BeforeAsync(context).GetAwaiter().GetResult();
+                    break;
+                case AsyncAspect asyncAspect:
+                    Task.Run(() => asyncAspect.BeforeAsync(context)).GetAwaiter().GetResult();
+                    break;
+            }
         }
 
         proceedInfo.Invoke();
 
-        await ((Task)context.ReturnValue).ConfigureAwait(false);
+        context.SynchronousReturnValue = context.ReturnValue;
 
         foreach (var aspect in methodAspects)
         {
-            // ReSharper disable once MethodHasAsyncOverload
-            aspect.After(context);
+            switch (aspect)
+            {
+                case Aspect syncAspect:
+                    syncAspect.After(context);
+                    break;
+                case AsyncAspect asyncAspect when SynchronizationContext.Current is null:
+                    asyncAspect.AfterAsync(context).GetAwaiter().GetResult();
+                    break;
+                case AsyncAspect asyncAspect:
+                    Task.Run(() => asyncAspect.AfterAsync(context)).GetAwaiter().GetResult();
+                    break;
+            }
+        }
+    }
 
-            await aspect.AfterAsync(context).ConfigureAwait(false);
+    private async Task InterceptCoreAsync(InvocationContext context, IInvocationProceedInfo proceedInfo)
+    {
+        var methodAspects = _methodAspects[context.Method];
+
+        foreach (var aspect in methodAspects)
+        {
+            switch (aspect)
+            {
+                case Aspect syncAspect:
+                    syncAspect.Before(context);
+                    break;
+                case AsyncAspect asyncAspect:
+                    await asyncAspect.BeforeAsync(context).ConfigureAwait(false);
+                    break;
+            }
+        }
+
+        proceedInfo.Invoke();
+
+        var task = (Task)context.ReturnValue!;
+
+        await task.ConfigureAwait(false);
+
+        context.AsynchronousReturnValue = context.Method.ReturnType.IsGenericType
+                                              ? context.Method.ReturnType.GetProperty("Result")!.GetValue(task, null)
+                                              : null;
+
+        foreach (var aspect in methodAspects)
+        {
+            switch (aspect)
+            {
+                case Aspect syncAspect:
+                    syncAspect.After(context);
+                    break;
+                case AsyncAspect asyncAspect:
+                    await asyncAspect.AfterAsync(context).ConfigureAwait(false);
+                    break;
+            }
         }
     }
 
@@ -161,26 +179,14 @@ internal sealed class AspectInterceptor : IInterceptor
 
     private static IReadOnlyList<IAspect> GetOrderedAspectsForMethod(
         MethodInfo method,
-        IReadOnlyList<IAspect> aspects)
+        IAspectProvider provider)
     {
-        var pairs = new List<(AspectAttribute Attribute, IAspect Aspect)>();
-
-        foreach (var attribute in method.DeclaringType!.GetCustomAttributes<AspectAttribute>()
-                                        .Concat(method.GetCustomAttributes<AspectAttribute>())
-                                        .Distinct())
-        {
-            var aspect = aspects.FirstOrDefault(aspect => aspect.GetType() == attribute.AspectType);
-
-            if (aspect is null)
-            {
-                Debug.Fail("The aspect on target type '{TargetType}' of type '{AspectType}' was not found.");
-                continue;
-            }
-
-            pairs.Add((attribute, aspect));
-        }
-
-        return pairs.OrderBy(pair => pair.Attribute.Order).Select(pair => pair.Aspect).ToList();
+        return method.DeclaringType!.GetCustomAttributes<AspectAttribute>()
+                     .Concat(method.GetCustomAttributes<AspectAttribute>())
+                     .Distinct()
+                     .OrderBy(attribute => attribute.Order)
+                     .Select(provider.GetAspect)
+                     .ToList();
     }
 
     private enum DelegateType

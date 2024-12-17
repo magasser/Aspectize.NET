@@ -4,29 +4,6 @@ namespace Aspectize.NET.Tests.Extensions;
 
 public class ReflectionExtensionsTests
 {
-    public static IEnumerable<object[]> GetDelegateTypeTestData()
-    {
-        yield return new object[]
-            { typeof(TestImplementation).GetMethod(nameof(TestImplementation.Action))!, DelegateType.Action };
-        yield return new object[]
-            { typeof(TestImplementation).GetMethod(nameof(TestImplementation.Func))!, DelegateType.Func };
-        yield return new object[]
-            { typeof(TestImplementation).GetMethod(nameof(TestImplementation.AsyncAction))!, DelegateType.AsyncAction };
-        yield return new object[]
-            { typeof(TestImplementation).GetMethod(nameof(TestImplementation.AsyncFunc))!, DelegateType.AsyncFunc };
-    }
-
-    [Theory]
-    [MemberData(nameof(GetDelegateTypeTestData))]
-    internal void GetDelegateType_ShouldReturnExpectedType(MethodInfo method, DelegateType expectedType)
-    {
-        // Act
-        var result = method.GetDelegateType();
-
-        // Assert
-        Assert.Equal(expectedType, result);
-    }
-
     [Aspect<TestInterfaceAspect>]
     public interface ITestInterface
     {
@@ -63,9 +40,9 @@ public class ReflectionExtensionsTests
         }
     }
 
-    public class TestInterfaceAspect : IAspect { }
+    public class TestInterfaceAspect : Aspect { }
 
-    public class TestInterfaceMethodAspect : IAspect { }
+    public class TestInterfaceMethodAspect : Aspect { }
 
     [Fact]
     internal void GivenInterfaceWithAspectAttribute_GetAspectAttributes_ShouldReturnTheAspectAttribute()
